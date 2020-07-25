@@ -17,7 +17,7 @@ class CrawlingNaver:
         options = Options()
         options.headless = True
         self.url = url
-        self.driver = webdriver.Chrome(executable_path=path)
+        self.driver = webdriver.Chrome(executable_path=path, options=options)
         self.prd_name = 0
         self.price = 0
 
