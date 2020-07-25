@@ -17,7 +17,7 @@ class CrawlingNaver:
         options = Options()
         options.headless = True
         self.url = url
-        self.driver = webdriver.Chrome(executable_path=path, options=options)
+        self.driver = webdriver.Chrome(executable_path=path)
         self.prd_name = 0
         self.price = 0
 
@@ -50,7 +50,7 @@ class CrawlingNaver:
     def review_crawling(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
         url = self.driver.current_url
-        self.driver.get(url+"#revw")
+        self.driver.get("https://smartstore.naver.com/gysports/products/349046086?NaPm=ct%3Dkd1ag1g8%7Cci%3D8d29ee8c5906168673b23723e6000df1f53c10b3%7Ctr%3Dslsl%7Csn%3D300094%7Chk%3D1b7025d0549f2e2cbc1d2448ea97b802df90eb81#revw"+"#revw")
         try:
             data = WebDriverWait(self.driver, 10)
         finally:
@@ -61,13 +61,13 @@ class CrawlingNaver:
             option = self.driver.find_elements_by_class_name("option_sort")
             review_cnt = self.driver.find_element_by_id("review_preview").find_element_by_class_name("num").text.replace(',', '')
 
-            '''positive가 true일 때 긍정리뷰, false일 때 부정리뷰'''
+            '''positive가 true일 때 긍정리뷰, false일 때 부정리뷰
             if positive:
                 option[2].click()
             else:
                 option[3].click()
             time.sleep(1)
-
+            '''
             '''
             idx==현재 리뷰페이지
             total_dix==총 리뷰페이지
@@ -76,6 +76,7 @@ class CrawlingNaver:
             idx = 1
             total_idx = math.ceil(int(review_cnt)/20)
             select_btn_idx = 0
+            first_check = True
 
             review_list = []
             '''리뷰 페이지 클릭하면서 긁어오기'''
@@ -83,7 +84,11 @@ class CrawlingNaver:
                 data = self.driver.find_element_by_css_selector("#area_review_list > div.detail_list_review._review_list").find_elements_by_tag_name("li")
                 '''네이버 쇼핑몰은 두가지 버전이 있음'''
                 if self.check_elem("paginate"):
-                    if select_btn_idx == 11: select_btn_idx = 1
+                    if select_btn_idx == 11 and first_check:
+                        select_btn_idx = 1
+                        first_check = False
+                    if select_btn_idx == 12 and not first_check:
+                        select_btn_idx = 1
                     if select_btn_idx == 1: select_btn_idx = 2
                     btn_elem = self.driver.find_element_by_class_name("paginate").find_elements_by_tag_name("a")
                 else:
@@ -104,15 +109,22 @@ class CrawlingNaver:
                     temp_dic['옵션'] = key.find_elements_by_class_name("text_info")[2].text
                     if self.check_elem_css(css_name=css_name):
                         temp_dic['리뷰형태'] = key.find_element_by_css_selector(css_name).text
+                        #print(key.find_element_by_css_selector(css_name).text)
                     else:
                         temp_dic['리뷰형태'] = '일반'
                     temp_dic['리뷰'] = key.find_element_by_class_name("text").text
                     temp_dic['좋아요'] = key.find_element_by_class_name("count").text
+                    #print(key.find_element_by_class_name("number_grade").text)
+                    #print(key.find_elements_by_class_name("text_info")[1].text)
+                    #print(key.find_elements_by_class_name("text_info")[2].text)
+                    #print(key.find_element_by_class_name("text").text)
+                    #print(key.find_element_by_class_name("count").text)
                     review_list.append(temp_dic)
 
                 '''리뷰 페이지 수 카운트'''
                 if idx == total_idx:
                     break
+                print(str(select_btn_idx)+":"+btn_elem[select_btn_idx].text)
                 btn_elem[select_btn_idx].click()
                 select_btn_idx += 1
                 idx += 1
