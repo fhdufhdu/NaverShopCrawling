@@ -1,6 +1,7 @@
 #-*- coding:utf-8 -*-
 import time
 import math
+import json
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
@@ -12,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 class CrawlingNaver:
 
     def __init__(self, url):
-        path = "./chromedriver.exe"
+        path = "./chromedriver84.exe"
         options = Options()
         options.headless = True
         self.driver = webdriver.Chrome(executable_path=path)
@@ -29,10 +30,16 @@ class CrawlingNaver:
 
     def next_crawl(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
-        self.driver.get(self.driver.current_url+"#revw")
+        url = self.driver.current_url
+        self.driver.get(url+"#revw")
         try:
             data = WebDriverWait(self.driver, 10)
         finally:
+            if url.find("smartstore") == -1:
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
+                print("test")
+                return
             option = self.driver.find_elements_by_class_name("option_sort")
             review_cnt = self.driver.find_element_by_id("review_preview").find_element_by_class_name("num").text.replace(',', '')
 
@@ -70,12 +77,13 @@ class CrawlingNaver:
                 for key in data:
                     if key.get_attribute("id") == '':
                         continue
+
                     css_name = '#'+key.get_attribute("id")+' > div > div.cell_text._cell_text > div.area_text > p > span.wrap_label > span'
                     print(key.find_element_by_class_name("number_grade").text)  #평점
                     print(key.find_elements_by_class_name("text_info")[1].text) #날짜
                     print(key.find_elements_by_class_name("text_info")[2].text) #옵션
                     if self.check_elem_css(css_name=css_name):
-                        print("monthUsing")    #한달사용기
+                        print(key.find_element_by_css_selector(css_name))    #한달사용기
                     print(key.find_element_by_class_name("text").text)  #리뷰
                     print(key.find_element_by_class_name("count").text) #좋아요
 
@@ -120,4 +128,5 @@ crawl.shutdown()
 5.데이터베이스 구현
 리뷰내용, 시간, 별점(1~5), 상품옵션, 따봉, 한달사용기유무
 https://smartstore.naver.com/dbtak/products/315627908#revw
+"https://search.shopping.naver.com/search/all?query=탁구채&cat_id=&frm=NVSHATC"
 '''
