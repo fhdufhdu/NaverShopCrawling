@@ -15,14 +15,23 @@ class CrawlingNaver:
     def __init__(self, url):
         path = "./chromedriver84.exe"
         options = Options()
-        options.headless = True
+        #options.headless = True
+        options.add_extension("./vpn.crx")
         self.url = url
-        self.driver = webdriver.Chrome(executable_path=path)
+        '''proxy = "119.192.195.83:8080"
+        webdriver.DesiredCapabilities.CHROME['proxy'] = {
+            "httpProxy": proxy,
+            "ftpProxy": proxy,
+            "sslProxy": proxy,
+            "proxyType": "MANUAL"
+        }'''
+        self.driver = webdriver.Chrome(executable_path=path, options=options)
         self.prd_name = 0
         self.price = 0
 
     def start_crawl(self):
         self.main_paging()
+        #self.driver.get("https://google.com")
 
     def main_paging(self):
         cnt = "1"
@@ -34,7 +43,7 @@ class CrawlingNaver:
 
     def main_clicking(self):
         try:
-            data = WebDriverWait(self.driver, 10)
+            data = WebDriverWait(self.driver, 20)
         finally:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             data = self.driver.find_elements_by_class_name("basicList_link__1MaTN")
@@ -52,7 +61,7 @@ class CrawlingNaver:
         url = self.driver.current_url
         self.driver.get("https://smartstore.naver.com/gysports/products/349046086?NaPm=ct%3Dkd1ag1g8%7Cci%3D8d29ee8c5906168673b23723e6000df1f53c10b3%7Ctr%3Dslsl%7Csn%3D300094%7Chk%3D1b7025d0549f2e2cbc1d2448ea97b802df90eb81#revw"+"#revw")
         try:
-            data = WebDriverWait(self.driver, 10)
+            data = WebDriverWait(self.driver, 20)
         finally:
             if url.find("smartstore") == -1:
                 self.driver.close()
@@ -165,7 +174,7 @@ class CrawlingNaver:
 
 crawl = CrawlingNaver(url="https://search.shopping.naver.com/search/all?query=탁구채&cat_id=&frm=NVSHATC&pagingIndex=")
 crawl.start_crawl()
-crawl.shutdown()
+#crawl.shutdown()
 
 
 '''
