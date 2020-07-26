@@ -21,14 +21,18 @@ class CrawlingNaver:
         self.driver = webdriver.Chrome(executable_path=path, options=options)
         self.prd_name = 0
         self.price = 0
+        self.cnt = "1"
+        self.list_idx = 0
 
     def start_crawl(self):
+        self.json_start_load()
         self.main_paging()
 
     def main_paging(self):
-        cnt = "1"
+        cnt = self.cnt
         while True:
             self.driver.get(self.url+cnt)
+            self.json_start_save_cnt(cnt)
             cnt = int(cnt)+1
             cnt = str(cnt)
             self.main_clicking()
@@ -40,7 +44,10 @@ class CrawlingNaver:
             self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             data = self.driver.find_elements_by_class_name("basicList_link__1MaTN")
             price = self.driver.find_elements_by_class_name("basicList_price__2r23_")
-            for idx in range(0, len(data)):
+            list_idx = self.list_idx
+            self.list_idx = 0
+            for idx in range(list_idx, len(data)):
+                self.json_start_save_idx(idx)
                 self.prd_name = data[idx].text
                 self.price = price[idx].text
                 print(self.prd_name)
@@ -163,6 +170,27 @@ class CrawlingNaver:
         json_dict['list'].append(add_json)
         with open("./review_file.json", "w", encoding='utf-8') as make_file:
             json.dump(json_dict, make_file, indent="\t", ensure_ascii=False)
+
+    def json_start_load(self):
+        with open("./restart.json", "r", encoding='utf-8') as file:
+            json_dict = json.load(file)
+        self.cnt = json_dict['cnt']
+        self.list_idx = int(json_dict['idx'])
+
+    def json_start_save_cnt(self, cnt):
+        with open("./restart.json", "r", encoding='utf-8') as file:
+            json_dict = json.load(file)
+        json_dict['cnt'] = cnt
+        with open("./restart.json", "w", encoding='utf-8') as make_file:
+            json.dump(json_dict, make_file, indent="\t", ensure_ascii=False)
+
+    def json_start_save_idx(self, idx):
+        with open("./restart.json", "r", encoding='utf-8') as file:
+            json_dict = json.load(file)
+        json_dict['idx'] = str(idx)
+        with open("./restart.json", "w", encoding='utf-8') as make_file:
+            json.dump(json_dict, make_file, indent="\t", ensure_ascii=False)
+
 
 crawl = CrawlingNaver(url="https://search.shopping.naver.com/search/all?query=탁구채&cat_id=&frm=NVSHATC&pagingIndex=")
 crawl.start_crawl()
