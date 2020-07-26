@@ -51,7 +51,7 @@ class CrawlingNaver:
     def review_crawling(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
         url = self.driver.current_url
-        self.driver.get("https://smartstore.naver.com/soundgarage/products/4940337988?NaPm=ct%3Dkd2jbkeg%7Cci%3D0zC0000PYLLtWbTc0L2A%7Ctr%3Dpla%7Chk%3D0876169638defc046ecbca577f6eaa5bfc76ce7a#revw"+"#revw")
+        self.driver.get(url+"#revw")
         try:
             data = WebDriverWait(self.driver, 30)
         finally:
