@@ -55,7 +55,7 @@ class CrawlingNaver:
         try:
             data = WebDriverWait(self.driver, 30)
         finally:
-            time.sleep(2)
+            time.sleep(3)
             if url.find("smartstore") == -1:
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
@@ -122,7 +122,7 @@ class CrawlingNaver:
                 btn_elem[select_btn_idx].click()
                 select_btn_idx += 1
                 idx += 1
-                time.sleep(1)
+                time.sleep(3)
             self.json_file_save(review_cnt, review_list)
             self.driver.close()
             self.driver.switch_to.window(self.driver.window_handles[0])
