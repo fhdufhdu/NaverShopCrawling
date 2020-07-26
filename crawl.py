@@ -133,7 +133,8 @@ class CrawlingNaver:
             for key in data:
                 if key.get_attribute('id') == '':
                     continue
-                css_name = '#' + key.get_attribute('id') + ' > div > div.cell_text._cell_text > div.area_text > p > span.wrap_label > span'
+                css_name = '#' + key.get_attribute(
+                    'id') + ' > div > div.cell_text._cell_text > div.area_text > p > span.wrap_label > span'
                 temp_dic = dict()
                 temp_dic['grade'] = key.find_element_by_class_name('number_grade').text
                 temp_dic['date'] = key.find_elements_by_class_name('text_info')[1].text
@@ -170,15 +171,21 @@ class CrawlingNaver:
             cnt = 1
             for li_elem in li:
                 temp_dic = dict()
-                grade = self.driver.find_element_by_css_selector('body > div > div.review_list > ul > li:nth-child(' + str(cnt) + ') > div > div.bbs_top > div.top_l > div > p > span').get_attribute('class')[-2:]
+                grade = self.driver.find_element_by_css_selector(
+                    'body > div > div.review_list > ul > li:nth-child(' + str(
+                        cnt) + ') > div > div.bbs_top > div.top_l > div > p > span').get_attribute('class')[-2:]
                 if grade == '00':
                     grade = '100'
-                temp_dic['grade'] = str(int(grade)//20)
-                temp_dic['date'] = self.driver.find_element_by_css_selector('body > div > div.review_list > ul > li:nth-child(' + str(cnt) + ') > div > div.bbs_top > div.top_r > span').text[2:]
+                temp_dic['grade'] = str(int(grade) // 20)
+                temp_dic['date'] = self.driver.find_element_by_css_selector(
+                    'body > div > div.review_list > ul > li:nth-child(' + str(
+                        cnt) + ') > div > div.bbs_top > div.top_r > span').text[2:]
                 temp_dic['option'] = li_elem.find_element_by_class_name('option_txt').text
                 temp_dic['review_type'] = '일반'
-                temp_dic['review'] = self.driver.find_element_by_xpath('/html/body/div/div[3]/ul/li[' + str(cnt) + ']/div/div[2]/div/p[2]/span').text
-                temp_dic['good'] = self.driver.find_element_by_xpath('/html/body/div/div[3]/ul/li[' + str(cnt) + ']/div/div[3]/p/a[1]/span[2]').text
+                temp_dic['review'] = self.driver.find_element_by_xpath(
+                    '/html/body/div/div[3]/ul/li[' + str(cnt) + ']/div/div[2]/div/p[2]/span').text
+                temp_dic['good'] = self.driver.find_element_by_xpath(
+                    '/html/body/div/div[3]/ul/li[' + str(cnt) + ']/div/div[3]/p/a[1]/span[2]').text
                 review_list.append(temp_dic)
                 cnt += 1
         self.json_file_save(url, '11번가', review_cnt, review_list)
@@ -189,6 +196,22 @@ class CrawlingNaver:
         time.sleep(3)
         review_btn = self.driver.find_element_by_xpath('/html/body/div[10]/div[3]/div[1]/ul/li[2]/a')
         review_btn.click()
+
+        page_num = self.driver.find_element_by_xpath(
+            '/html/body/div[10]/div[3]/div[2]/div[2]/div[3]/div/div[2]/div/div[3]/div[2]/div/div/input')
+        page_max = int(self.driver.find_element_by_xpath(
+            '/html/body/div[10]/div[3]/div[2]/div[2]/div[3]/div/div[2]/div/div[3]/div[2]/div/div/span/em').text)
+        page_next_btn = self.driver.find_element_by_xpath(
+            '/html/body/div[10]/div[3]/div[2]/div[2]/div[3]/div/div[2]/div/div[3]/div[2]/div/div/a')
+        review_cnt = int(self.driver.find_element_by_xpath('/html/body/div[10]/div[3]/div[1]/ul/li[2]/a/span[2]').text)
+        for page_idx in range(1, page_max + 1):
+            page_num.send_keys(str(page_idx))
+            page_next_btn.click()
+            time.sleep(3)
+            li = self.driver.find_element_by_xpath(
+                '/html/body/div[10]/div[3]/div[2]/div[2]/div[3]/div/div[2]/div/div[3]/div[2]/ul').find_elements_by_class_name(
+                'list_item')
+            for li_elem in li:
 
     def check_elem(self, class_name):
         try:
