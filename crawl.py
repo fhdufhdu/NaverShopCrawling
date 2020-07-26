@@ -51,17 +51,23 @@ class CrawlingNaver:
     def review_crawling(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
         url = self.driver.current_url
-        self.driver.get(url+"#revw")
+        self.driver.get("https://smartstore.naver.com/soundgarage/products/4940337988?NaPm=ct%3Dkd2jbkeg%7Cci%3D0zC0000PYLLtWbTc0L2A%7Ctr%3Dpla%7Chk%3D0876169638defc046ecbca577f6eaa5bfc76ce7a#revw"+"#revw")
         try:
             data = WebDriverWait(self.driver, 30)
         finally:
-            time.sleep(3)
+            time.sleep(5)
             if url.find("smartstore") == -1:
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
                 return
             option = self.driver.find_elements_by_class_name("option_sort")
             review_cnt = self.driver.find_element_by_id("review_preview").find_element_by_class_name("num").text.replace(',', '')
+
+            if review_cnt == '0':
+                self.json_file_save(url, review_cnt, [])
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
+                return
 
             '''positive가 true일 때 긍정리뷰, false일 때 부정리뷰
             if positive:
@@ -122,8 +128,8 @@ class CrawlingNaver:
                 btn_elem[select_btn_idx].click()
                 select_btn_idx += 1
                 idx += 1
-                time.sleep(3)
-            self.json_file_save(review_cnt, review_list)
+                time.sleep(5)
+            self.json_file_save(url, review_cnt, review_list)
             self.driver.close()
             self.driver.switch_to.window(self.driver.window_handles[0])
 
@@ -144,12 +150,13 @@ class CrawlingNaver:
     def shutdown(self):
         self.driver.quit()
 
-    def json_file_save(self, review_cnt, review_list):
+    def json_file_save(self, url, review_cnt, review_list):
         with open("./review_file.json", "r", encoding='utf-8') as file:
             json_dict = json.load(file)
         add_json = {
             'product_name': self.prd_name,
             'product_price': self.price,
+            'url': url,
             'review_cnt': review_cnt,
             'review_list': review_list
         }
