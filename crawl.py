@@ -186,6 +186,7 @@ class CrawlingNaver:
         self.driver.switch_to.window(self.driver.window_handles[0])
 
     def auction_crawling(self, url):
+        time.sleep(3)
         review_btn = self.driver.find_element_by_xpath('/html/body/div[10]/div[3]/div[1]/ul/li[2]/a')
         review_btn.click()
 
