@@ -49,11 +49,15 @@ class CrawlingNaver:
         finally:
             self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
 
+            time.sleep(5)
+
             data = self.driver.find_elements_by_class_name('basicList_link__1MaTN')
             price = self.driver.find_elements_by_class_name('basicList_price__2r23_')
 
             list_idx = self.last_list_idx
             self.last_list_idx = 0
+
+            print(len(data))
 
             for idx in range(list_idx, len(data)):
                 self.json_start_save_idx(idx)
@@ -69,8 +73,12 @@ class CrawlingNaver:
 
     def review_crawling(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
-        url = self.driver.current_url
-        self.driver.get(url)
+        while True:
+            time.sleep(1)
+            url = self.driver.current_url
+            if url.find('cr.shopping.naver.com/adcr.nhn') == -1:
+                self.driver.get(url)
+                break
         try:
             data = WebDriverWait(self.driver, 30)
         finally:
@@ -81,6 +89,7 @@ class CrawlingNaver:
             elif url.find('auction') > -1:
                 self.auction_crawling(url)
             elif url.find('coupang') > -1:
+                print("test")
                 self.coupang_crawling(url)
             else:
                 self.driver.close()
@@ -99,8 +108,9 @@ class CrawlingNaver:
         option = self.driver.find_elements_by_css_selector(
             '#area_review_list > div.header_review._review_list_header > ul > li:nth-child(2) > a')
         review_cnt = self.driver.find_element_by_css_selector(
-            '#wrap > div._easy_purchaseV2.module_detail_simplebuy > div > div.detail_tab_floatable > ul '
-            '> li:nth-child(2) > a > span').text.replace(',', '')
+            '#area_review_list > div.header_review._review_list_header > strong > span').text.replace(',', '')
+
+        print(review_cnt)
 
         if review_cnt == '0':
             self.json_file_save(url, '네이버쇼핑', review_cnt, [])
@@ -152,38 +162,42 @@ class CrawlingNaver:
                     '#area_review_list > nav').find_elements_by_tag_name('a')
 
             '''데이터 가져오는 영역'''
+            cnt = 1
             for li_elem in li:
-                temp_dic = dict()
+                try:
+                    temp_dic = dict()
 
-                if li_elem.get_attribute('id') == '':
+                    if li_elem.get_attribute('id') == '':
+                        continue
+
+                    li_id = '#' + li_elem.get_attribute('id')
+                    css_name = li_id + ' > div > div.cell_text._cell_text > div.area_text > p > span.wrap_label > span'
+
+                    temp_dic['grade'] = self.driver.find_element_by_css_selector(
+                        li_id + ' > div > div.cell_text._cell_text > div.area_text'
+                                ' > div.area_star_small > span.number_grade').text
+                    temp_dic['date'] = self.driver.find_element_by_css_selector(
+                        li_id + ' > div > div.cell_text._cell_text > div.are'
+                                'a_text > div:nth-child(2) > div > span:nth-child(2)').text
+                    if self.check_elem_css(
+                            li_id + ' > div > div.cell_text._cell_text > div.area_text > div:nth-child(2) > div > p'):
+                        temp_dic['option'] = self.driver.find_element_by_css_selector(
+                            li_id + ' > div > div.cell_text._cell_text > div.area_text > div:nth-child(2) > div > p').text
+                    else:
+                        temp_dic['option'] = 'null'
+                    if self.check_elem_css(css_name=css_name):
+                        temp_dic['review_type'] = self.driver.find_element_by_css_selector(css_name).text
+                    else:
+                        temp_dic['review_type'] = '일반'
+                    temp_dic['review'] = self.driver.find_element_by_css_selector(
+                        li_id + ' > div > div.cell_text._cell_text > div.area_text > p > span').text
+                    temp_dic['good'] = self.driver.find_element_by_css_selector(
+                        li_id + ' > div > div.cell_recommend._cell_recommend > div > div > button > span').text
+                    review_list.append(temp_dic)
+                    cnt += 1
+                except NoSuchElementException:
+                    cnt += 1
                     continue
-
-                li_id = '#' + li_elem.get_attribute('id')
-                css_name = li_id + ' > div > div.cell_text._cell_text > div.area_text > p > span.wrap_label > span'
-
-                temp_dic['grade'] = self.driver.find_element_by_css_selector(
-                    li_id + ' > div > div.cell_text._cell_text > div.area_text'
-                            ' > div.area_star_small > span.number_grade').text
-                temp_dic['date'] = self.driver.find_element_by_css_selector(
-                    li_id + ' > div > div.cell_text._cell_text > div.are'
-                            'a_text > div:nth-child(2) > div > span:nth-child(2)').text
-                if self.check_elem_css(
-                        li_id + ' > div > div.cell_text._cell_text > div.area_text > div:nth-child(2) > div > p'):
-                    temp_dic['option'] = self.driver.find_element_by_css_selector(
-                        li_id + ' > div > div.cell_text._cell_text > div.area_text > div:nth-child(2) > div > p').text
-                else:
-                    temp_dic['option'] = 'null'
-                if self.check_elem_css(css_name=css_name):
-                    temp_dic['review_type'] = self.driver.find_element_by_css_selector(css_name).text
-                else:
-                    temp_dic['review_type'] = '일반'
-                temp_dic['review'] = self.driver.find_element_by_css_selector(
-                    li_id + ' > div > div.cell_text._cell_text > div.area_text > p > span').text
-                temp_dic['good'] = self.driver.find_element_by_css_selector(
-                    li_id + ' > div > div.cell_recommend._cell_recommend > div > div > button > span').text
-
-                review_list.append(temp_dic)
-                print(temp_dic)
 
             '''리뷰 페이지 수 카운트'''
             if idx == total_idx:
@@ -219,30 +233,32 @@ class CrawlingNaver:
             cnt = 1
 
             for li_elem in li:
-                temp_dic = dict()
-                review_css = 'body > div > div.review_list > ul > li:nth-child(' + str(cnt)
-                grade = self.driver.find_element_by_css_selector(
-                    review_css + ') > div > div.bbs_top > div.top_l > div > p > span').get_attribute('class')[-2:]
-                if grade == '00':
-                    grade = '100'
+                try:
+                    temp_dic = dict()
+                    review_css = 'body > div > div.review_list > ul > li:nth-child(' + str(cnt)
+                    grade = self.driver.find_element_by_css_selector(
+                        review_css + ') > div > div.bbs_top > div.top_l > div > p > span').get_attribute('class')[-2:]
+                    if grade == '00':
+                        grade = '100'
 
-                temp_dic['grade'] = str(int(grade) // 20)
-                temp_dic['date'] = self.driver.find_element_by_css_selector(
-                    review_css + ') > div > div.bbs_top > div.top_r > span').text[2:]
-                temp_dic['option'] = self.driver.find_element_by_css_selector(
-                    review_css + ') > div > div.bbs_cont_wrap > div > p.option_txt').text
-                temp_dic['review_type'] = '일반'
-                temp_dic['review'] = self.driver.find_element_by_css_selector(
-                    review_css + ') > div > div.bbs_cont_wrap > div > p.bbs_summary > span').text
-                if not self.check_elem_css(review_css + ') > div > div.btnwrap > p > a:nth-child(1) > span.cnt'):
+                    temp_dic['grade'] = str(int(grade) // 20)
+                    temp_dic['date'] = self.driver.find_element_by_css_selector(
+                        review_css + ') > div > div.bbs_top > div.top_r > span').text[2:]
+                    temp_dic['option'] = self.driver.find_element_by_css_selector(
+                        review_css + ') > div > div.bbs_cont_wrap > div > p.option_txt').text
+                    temp_dic['review_type'] = '일반'
+                    temp_dic['review'] = self.driver.find_element_by_css_selector(
+                        review_css + ') > div > div.bbs_cont_wrap > div > p.bbs_summary > span').text
+                    if not self.check_elem_css(review_css + ') > div > div.btnwrap > p > a:nth-child(1) > span.cnt'):
+                        cnt += 1
+                        continue
+                    temp_dic['good'] = self.driver.find_element_by_css_selector(
+                        review_css + ') > div > div.btnwrap > p > a:nth-child(1) > span.cnt').text
+                    review_list.append(temp_dic)
+                    cnt += 1
+                except NoSuchElementException:
                     cnt += 1
                     continue
-                temp_dic['good'] = self.driver.find_element_by_css_selector(
-                    review_css + ') > div > div.btnwrap > p > a:nth-child(1) > span.cnt').text
-                review_list.append(temp_dic)
-                print(temp_dic)
-                cnt += 1
-
         self.json_file_save(url, '11번가', review_cnt, review_list)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
@@ -276,32 +292,35 @@ class CrawlingNaver:
             cnt = 1
 
             for li_elem in li:
-                temp_dic = dict()
-                review_css = '#divVipReview > ul > li:nth-child(' + str(cnt) + ') '
-                if not self.check_elem_css(
+                try:
+                    temp_dic = dict()
+                    review_css = '#divVipReview > ul > li:nth-child(' + str(cnt) + ') '
+                    if not self.check_elem_css(
+                            review_css +
+                            '> div > div.box__content > div.box__review-text > p'):
+                        cnt += 1
+                        continue
+                    grade = self.driver.find_element_by_css_selector(
                         review_css +
-                        '> div > div.box__content > div.box__review-text > p'):
+                        '> div > div.box__content > div.box__info > div > span > span.sprite__vip.image__star-fill') \
+                                .get_attribute('style')[-4:].replace('%;', '')
+                    if grade == '00':
+                        grade = '100'
+                    temp_dic['grade'] = str(int(grade) // 20)
+                    temp_dic['date'] = self.driver.find_element_by_css_selector(
+                        review_css + '> div > div.box__content > div.box__info > p.text__date').text[2:]
+                    temp_dic['option'] = self.driver.find_element_by_css_selector(
+                        review_css + '> div > div.box__content > div.text__option > span').text
+                    temp_dic['review_type'] = '일반'
+                    temp_dic['review'] = self.driver.find_element_by_css_selector(
+                        review_css + '> div > div.box__content > div.box__review-text > p').text
+                    temp_dic['good'] = self.driver.find_element_by_css_selector(
+                        review_css + '> div > div.box__helpful > button > span.text__count').text
+                    review_list.append(temp_dic)
+                    cnt += 1
+                except NoSuchElementException:
                     cnt += 1
                     continue
-                grade = self.driver.find_element_by_css_selector(
-                    review_css +
-                    '> div > div.box__content > div.box__info > div > span > span.sprite__vip.image__star-fill') \
-                            .get_attribute('style')[-4:].replace('%;', '')
-                if grade == '00':
-                    grade = '100'
-                temp_dic['grade'] = str(int(grade) // 20)
-                temp_dic['date'] = self.driver.find_element_by_css_selector(
-                    review_css + '> div > div.box__content > div.box__info > p.text__date').text[2:]
-                temp_dic['option'] = self.driver.find_element_by_css_selector(
-                    review_css + '> div > div.box__content > div.text__option > span').text
-                temp_dic['review_type'] = '일반'
-                temp_dic['review'] = self.driver.find_element_by_css_selector(
-                    review_css + '> div > div.box__content > div.box__review-text > p').text
-                temp_dic['good'] = self.driver.find_element_by_css_selector(
-                    review_css + '> div > div.box__helpful > button > span.text__count').text
-                review_list.append(temp_dic)
-                print(temp_dic)
-                cnt += 1
         self.json_file_save(url, '옥션', review_cnt, review_list)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[0])
@@ -312,7 +331,7 @@ class CrawlingNaver:
         review_cnt = self.driver.find_element_by_css_selector(
             '#btfTab > ul.tab-titles > li:nth-child(2) > span').text.replace(',', '')
         review_cnt = review_cnt[1:len(review_cnt) - 1]
-
+        
         if review_cnt == '':
             review_cnt = '0'
             self.json_file_save(url, '쿠팡', review_cnt, [])
@@ -325,6 +344,8 @@ class CrawlingNaver:
         review_btn = self.driver.find_element_by_css_selector('#btfTab > ul.tab-titles > li:nth-child(2)')
         review_btn.click()
 
+        page_max = math.ceil(int(review_cnt)/5)
+        page_cnt = 1
         page_idx = 2
         while True:
             self.random_time_sleep(3, 6)
@@ -333,48 +354,52 @@ class CrawlingNaver:
             articles = self.driver.find_element_by_css_selector(review_css).find_elements_by_tag_name('article')
             cnt = 3
             for article in articles:
-                temp_dic = dict()
-                review_xpath_2 = review_css + ' > article:nth-child(' + str(cnt) + ') '
-                grade = self.driver.find_element_by_css_selector(
-                    review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
-                    'product-info > div.sdp-review__article__list__info__product-info__star-gray > div'
+                try:
+                    temp_dic = dict()
+                    review_xpath_2 = review_css + ' > article:nth-child(' + str(cnt) + ') '
+                    grade = self.driver.find_element_by_css_selector(
+                        review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
+                                         'product-info > div.sdp-review__article__list__info__product-info__star-gray > div'
                     ).get_attribute('style')[-4:].replace('%;', '')
-                if grade == '00':
-                    grade = '100'
+                    if grade == '00':
+                        grade = '100'
 
-                temp_dic['grade'] = str(int(grade) // 20)
-                temp_dic['date'] = self.driver.find_element_by_css_selector(
-                    review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
-                    'product-info > div.sdp-review__article__list__info__product-info__reg-date').text[2:]
-                temp_dic['option'] = self.driver.find_element_by_css_selector(
-                    review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
-                    'product-info__name').text
-                temp_dic['review_type'] = '일반'
-                if not self.check_elem_css(
-                        review_xpath_2 + '> div.sdp-review__article__list__review.js_reviewArticleContentContainer'):
+                    temp_dic['grade'] = str(int(grade) // 20)
+                    temp_dic['date'] = self.driver.find_element_by_css_selector(
+                        review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
+                                         'product-info > div.sdp-review__article__list__info__product-info__reg-date').text[
+                                       2:]
+                    temp_dic['option'] = self.driver.find_element_by_css_selector(
+                        review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
+                                         'product-info__name').text
+                    temp_dic['review_type'] = '일반'
+                    if not self.check_elem_css(
+                            review_xpath_2 + '> div.sdp-review__article__list__review.js_reviewArticleContentContainer'):
+                        cnt += 1
+                        continue
+                    temp_dic['review'] = self.driver.find_element_by_css_selector(
+                        review_xpath_2 + '> div.sdp-review__article__list__review.'
+                                         'js_reviewArticleContentContainer > div').text
+                    temp_dic['good'] = self.driver.find_element_by_css_selector(
+                        review_xpath_2 + '> div.sdp-review__article__list__help.js_reviewArticleHelpfulContainer'
+                    ).get_attribute('data-count')
+                    cnt += 1
+                    review_list.append(temp_dic)
+                except NoSuchElementException:
                     cnt += 1
                     continue
-                temp_dic['review'] = self.driver.find_element_by_css_selector(
-                    review_xpath_2 + '> div.sdp-review__article__list__review.'
-                                     'js_reviewArticleContentContainer > div').text
-                temp_dic['good'] = self.driver.find_element_by_css_selector(
-                    review_xpath_2 + '> div.sdp-review__article__list__help.js_reviewArticleHelpfulContainer'
-                ).get_attribute('data-count')
-                cnt += 1
-                print(temp_dic)
-                review_list.append(temp_dic)
-
             if page_idx == 12:
                 page_idx = 2
 
             page_div = '#btfTab > ul.tab-contents > li.product-review > div > ' \
                        'div.sdp-review__article.js_reviewArticleContainer > section.js_reviewArticleListContainer > ' \
                        'div.sdp-review__article__page.js_reviewArticlePagingContainer'
-            if not self.check_elem_css(page_div):
+            if page_cnt == page_max:
                 break
             page_btn = self.driver.find_element_by_css_selector(page_div).find_elements_by_tag_name('button')
             page_btn[page_idx].click()
             page_idx += 1
+            page_cnt += 1
 
         self.json_file_save(url, '쿠팡', review_cnt, review_list)
         self.driver.close()
