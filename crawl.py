@@ -18,7 +18,7 @@ class CrawlingNaver:
         # options.headless = True
         # options.add_extension('./vpn.crx')
 
-        path = './chromedriver83.exe'
+        path = 'driver/chromedriver83.exe'
         options = Options()
         self.driver = webdriver.Chrome(executable_path=path, options=options)
 
@@ -470,32 +470,27 @@ class CrawlingNaver:
             json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
 
     def json_start_load(self):
-        with open('./restart.json', 'r', encoding='utf-8') as file:
+        with open('restart/restart.json', 'r', encoding='utf-8') as file:
             json_dict = json.load(file)
         self.last_cnt = json_dict['cnt']
         self.last_list_idx = int(json_dict['idx'])
 
     def json_start_save_cnt(self, cnt):
-        with open('./restart.json', 'r', encoding='utf-8') as file:
+        with open('restart/restart.json', 'r', encoding='utf-8') as file:
             json_dict = json.load(file)
         json_dict['cnt'] = cnt
-        with open('./restart.json', 'w', encoding='utf-8') as make_file:
+        with open('restart/restart.json', 'w', encoding='utf-8') as make_file:
             json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
 
     def json_start_save_idx(self, idx):
-        with open('./restart.json', 'r', encoding='utf-8') as file:
+        with open('restart/restart.json', 'r', encoding='utf-8') as file:
             json_dict = json.load(file)
         json_dict['idx'] = str(idx)
-        with open('./restart.json', 'w', encoding='utf-8') as make_file:
+        with open('restart/restart.json', 'w', encoding='utf-8') as make_file:
             json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
 
     def random_time_sleep(self, start, stop):
         time.sleep(random.randrange(start, stop))
-
-
-crawl = CrawlingNaver(url='https://search.shopping.naver.com/search/all?query=탁구채&cat_id=&frm=NVSHATC&sort=review&pagingIndex=')
-crawl.start_crawl()
-crawl.shutdown()
 
 '''
 1.다음버튼 누르면서 데이터 뽑기

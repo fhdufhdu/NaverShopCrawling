@@ -11,5 +11,5 @@ for idx in range(1, 4):
 print(len(review_list))
 save_dict = dict()
 save_dict['list'] = review_list
-with open('./learning_list.json', 'w', encoding='utf-8') as make_file:
+with open('learning/learning_list.json', 'w', encoding='utf-8') as make_file:
     json.dump(save_dict, make_file, indent='\t', ensure_ascii=False)
