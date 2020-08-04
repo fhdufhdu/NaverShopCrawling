@@ -44,32 +44,37 @@ class CrawlingNaver:
             cnt = str(cnt)
 
     def main_clicking(self):
-        try:
-            data = WebDriverWait(self.driver, 30)
-        finally:
-            self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+        data_chk = True
+        while data_chk:
+            self.driver.get(self.driver.current_url)
+            try:
+                data = WebDriverWait(self.driver, 30)
+            finally:
+                self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
 
-            time.sleep(5)
+                time.sleep(5)
 
-            data = self.driver.find_elements_by_class_name('basicList_link__1MaTN')
-            price = self.driver.find_elements_by_class_name('basicList_price__2r23_')
+                data = self.driver.find_elements_by_class_name('basicList_link__1MaTN')
+                price = self.driver.find_elements_by_class_name('basicList_price__2r23_')
 
-            list_idx = self.last_list_idx
-            self.last_list_idx = 0
+                list_idx = self.last_list_idx
+                self.last_list_idx = 0
 
-            print(len(data))
+                print(len(data))
 
-            for idx in range(list_idx, len(data)):
-                self.json_start_save_idx(idx)
+                if len(data) == 40:
+                    for idx in range(list_idx, len(data)):
+                        self.json_start_save_idx(idx)
 
-                self.prd_name = data[idx].text
-                self.price = price[idx].text
-                data[idx].click()
+                        self.prd_name = data[idx].text
+                        self.price = price[idx].text
+                        data[idx].click()
 
-                print(self.prd_name)
-                print(self.price)
+                        print(self.prd_name)
+                        print(self.price)
 
-                self.review_crawling(positive=True)
+                        self.review_crawling(positive=True)
+                    data_chk = False
 
     def review_crawling(self, positive=True):
         self.driver.switch_to.window(self.driver.window_handles[-1])
@@ -84,18 +89,16 @@ class CrawlingNaver:
         finally:
             if url.find('smartstore') > -1:
                 self.naver_crawling(url)
-            elif url.find('11st') > -1:
-                self.eleven_crawling(url)
             elif url.find('auction') > -1:
                 self.auction_crawling(url)
             elif url.find('coupang') > -1:
-                print("test")
                 self.coupang_crawling(url)
             else:
                 self.driver.close()
                 self.driver.switch_to.window(self.driver.window_handles[0])
                 return
-
+            '''elif url.find('11st') > -1:
+                            self.eleven_crawling(url)'''
             '''
             elif url.find('gmarket') == -1:
             '''
@@ -176,6 +179,9 @@ class CrawlingNaver:
                     temp_dic['grade'] = self.driver.find_element_by_css_selector(
                         li_id + ' > div > div.cell_text._cell_text > div.area_text'
                                 ' > div.area_star_small > span.number_grade').text
+                    if int(temp_dic['grade']) > 3:
+                        cnt += 1
+                        continue
                     temp_dic['date'] = self.driver.find_element_by_css_selector(
                         li_id + ' > div > div.cell_text._cell_text > div.are'
                                 'a_text > div:nth-child(2) > div > span:nth-child(2)').text
@@ -242,6 +248,9 @@ class CrawlingNaver:
                         grade = '100'
 
                     temp_dic['grade'] = str(int(grade) // 20)
+                    if int(temp_dic['grade']) > 3:
+                        cnt += 1
+                        continue
                     temp_dic['date'] = self.driver.find_element_by_css_selector(
                         review_css + ') > div > div.bbs_top > div.top_r > span').text[2:]
                     temp_dic['option'] = self.driver.find_element_by_css_selector(
@@ -307,6 +316,9 @@ class CrawlingNaver:
                     if grade == '00':
                         grade = '100'
                     temp_dic['grade'] = str(int(grade) // 20)
+                    if int(temp_dic['grade']) > 3:
+                        cnt += 1
+                        continue
                     temp_dic['date'] = self.driver.find_element_by_css_selector(
                         review_css + '> div > div.box__content > div.box__info > p.text__date').text[2:]
                     temp_dic['option'] = self.driver.find_element_by_css_selector(
@@ -365,6 +377,9 @@ class CrawlingNaver:
                         grade = '100'
 
                     temp_dic['grade'] = str(int(grade) // 20)
+                    if int(temp_dic['grade']) > 3:
+                        cnt += 1
+                        continue
                     temp_dic['date'] = self.driver.find_element_by_css_selector(
                         review_xpath_2 + '> div.sdp-review__article__list__info > div.sdp-review__article__list__info__'
                                          'product-info > div.sdp-review__article__list__info__product-info__reg-date').text[
@@ -454,7 +469,7 @@ class CrawlingNaver:
         self.driver.quit()
 
     def json_file_save(self, url, type, review_cnt, review_list):
-        with open('./review_file.json', 'r', encoding='utf-8') as file:
+        with open('review/review_file.json', 'r', encoding='utf-8') as file:
             json_dict = json.load(file)
         add_json = {
             'product_name': self.prd_name,
@@ -466,7 +481,7 @@ class CrawlingNaver:
         }
         json_dict['list'].append(add_json)
         json_dict['review_total'] = str(int(json_dict['review_total']) + int(review_cnt))
-        with open('./review_file.json', 'w', encoding='utf-8') as make_file:
+        with open('review/review_file.json', 'w', encoding='utf-8') as make_file:
             json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
 
     def json_start_load(self):

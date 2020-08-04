@@ -2,7 +2,7 @@ import json
 
 review_list = []
 for idx in range(1, 4):
-    path = './review_file_' + str(idx) + '.json'
+    path = 'review/review_file.json'
     with open(path, 'r', encoding='utf-8') as file:
         json_dict = json.load(file)
     for first_list in json_dict['list']:
