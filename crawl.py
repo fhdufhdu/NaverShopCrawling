@@ -469,7 +469,7 @@ class CrawlingNaver:
         self.driver.quit()
 
     def json_file_save(self, url, type, review_cnt, review_list):
-        with open('review/review_file.json', 'r', encoding='utf-8') as file:
+        with open('review/review_file_negative.json', 'r', encoding='utf-8') as file:
             json_dict = json.load(file)
         add_json = {
             'product_name': self.prd_name,
@@ -481,7 +481,7 @@ class CrawlingNaver:
         }
         json_dict['list'].append(add_json)
         json_dict['review_total'] = str(int(json_dict['review_total']) + int(review_cnt))
-        with open('review/review_file.json', 'w', encoding='utf-8') as make_file:
+        with open('review/review_file_negative.json', 'w', encoding='utf-8') as make_file:
             json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
 
     def json_start_load(self):
