@@ -82,6 +82,7 @@ class CrawlingNaver:
             time.sleep(1)
             url = self.driver.current_url
             if url.find('cr.shopping.naver.com/adcr.nhn') == -1:
+                url = 'http://itempage3.auction.co.kr/DetailView.aspx?ItemNo=A105368416&frm3=V2'
                 self.driver.get(url)
                 break
         try:

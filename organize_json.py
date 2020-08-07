@@ -3,7 +3,7 @@ from konlpy.tag import Okt
 
 okt = Okt()
 
-with open('review/review_file_temp_negative.json', 'r', encoding='utf-8') as file:
+with open('review/review_file_negative_deform.json', 'r', encoding='utf-8') as file:
     json_dict = json.load(file)
 
 for prod_list in json_dict['list']:
@@ -21,7 +21,7 @@ for prod_list in json_dict['list']:
             word2vec.append(pos_elem[0])
         review['tf-idf'] = pos_str
         review['word2vec'] = word2vec
-        '''if review['review'] == '잘 받았습니다. 많이 파세요^^' or \
+        '''if review['review'] == '잘 받았습니다. 많이 파세요 ^^' or \
             review['review'] == '한달사용기' or\
             review['review'] == '한달사용기BEST' or\
             review['review'] == '한달사용기재구매' or\
@@ -30,5 +30,5 @@ for prod_list in json_dict['list']:
         r_list.append(review)
     prod_list['review_list'] = r_list'''
 
-with open('review/review_file_deform_negative.json', 'w', encoding='utf-8') as make_file:
+with open('review/review_file_negative_deform.json', 'w', encoding='utf-8') as make_file:
     json.dump(json_dict, make_file, indent='\t', ensure_ascii=False)
