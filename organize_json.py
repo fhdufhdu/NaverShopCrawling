@@ -8,7 +8,10 @@ with open('review/review_file_negative_deform.json', 'r', encoding='utf-8') as f
 
 for prod_list in json_dict['list']:
     r_list = []
+    cnt = 0
     for review in prod_list['review_list']:
+        review['id'] = cnt
+        cnt += 1
         pos = okt.pos(review['review'], norm=True, stem=True)
         pos_str = ''
         word2vec = []
@@ -22,6 +25,10 @@ for prod_list in json_dict['list']:
         review['tf-idf'] = pos_str
         review['word2vec'] = word2vec
         '''if review['review'] == '잘 받았습니다. 많이 파세요 ^^' or \
+            review['review'] == '완전 강추합니다.' or \
+            review['review'] == '가격대비 괜찮네요~~' or \
+            review['review'] == '잘 받았습니다. 많이 파세요^^' or \
+            review['review'] == '잘받았습니다. 마음에 들어요.' or\
             review['review'] == '한달사용기' or\
             review['review'] == '한달사용기BEST' or\
             review['review'] == '한달사용기재구매' or\
